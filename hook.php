@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 /*
  * @version $Id: HEADER 15930 2011-10-30 15:47:55Z tsmr $
@@ -33,12 +34,10 @@ use GlpiPlugin\Consumables\Option;
 use GlpiPlugin\Consumables\Profile;
 use GlpiPlugin\Consumables\Request;
 
+
 /**
- * @return bool
- */
-function plugin_consumables_install()
-{
-    global $DB;
+ * Instala o plugin Consumables
+function plugin_consumables_install(): bool
 
     if (!$DB->tableExists("glpi_plugin_consumables_requests")) {
         // Install script
@@ -57,17 +56,22 @@ function plugin_consumables_install()
     return true;
 }
 
+
 /**
+ * Desinstala o plugin Consumables
+ *
  * @return bool
  */
-function plugin_consumables_uninstall()
+function plugin_consumables_uninstall(): bool
 {
     global $DB;
 
-    $tables = ["glpi_plugin_consumables_profiles",
+    $tables = [
+        "glpi_plugin_consumables_profiles",
         "glpi_plugin_consumables_requests",
         "glpi_plugin_consumables_options",
-        "glpi_plugin_consumables_fields"];
+        "glpi_plugin_consumables_fields"
+    ];
 
     foreach ($tables as $table) {
         $DB->dropTable($table, true);
@@ -107,7 +111,8 @@ function plugin_consumables_uninstall()
         }
     }
 
-    $itemtypes = ['Alert',
+    $itemtypes = [
+        'Alert',
         'DisplayPreference',
         'Document_Item',
         'ImpactItem',
@@ -117,7 +122,8 @@ function plugin_consumables_uninstall()
         'SavedSearch',
         'DropdownTranslation',
         'NotificationTemplate',
-        'Notification'];
+        'Notification'
+    ];
     foreach ($itemtypes as $itemtype) {
         $item = new $itemtype;
         $item->deleteByCriteria(['itemtype' => Request::class]);
@@ -130,17 +136,20 @@ function plugin_consumables_uninstall()
     }
 
     Menu::removeRightsFromSession();
-
     Profile::removeRightsFromSession();
 
     return true;
 }
 
 // Hook done on purge item case
+
 /**
- * @param $item
+ * Hook executado ao purgar item
+ *
+ * @param object $item
+ * @return void
  */
-function plugin_item_purge_consumables($item)
+function plugin_item_purge_consumables(object $item): void
 {
     switch (get_class($item)) {
         case 'ConsumableItem':
@@ -151,76 +160,83 @@ function plugin_item_purge_consumables($item)
 }
 
 // Define dropdown relations
-/**
- * @return array
- */
-function plugin_consumables_getDatabaseRelations()
-{
 
-    if (Plugin::isPluginActive("consumables")) {
-        return ["glpi_consumableitems" => ["glpi_plugin_consumables_requests" => "consumableitems_id",
-                                            "glpi_plugin_consumables_options" => "consumableitems_id"]];
-    } else {
-        return [];
-    }
-}
-
-// Define search option for types of the plugins
 /**
- * @param $itemtype
+ * Define relações de dropdown
  *
  * @return array
  */
-function plugin_consumables_getAddSearchOptions($itemtype)
+function plugin_consumables_getDatabaseRelations(): array
 {
+    if (Plugin::isPluginActive("consumables")) {
+        return [
+            "glpi_consumableitems" => [
+                "glpi_plugin_consumables_requests" => "consumableitems_id",
+                "glpi_plugin_consumables_options" => "consumableitems_id"
+            ]
+        ];
+    }
+    return [];
+}
 
+// Define search option for types of the plugins
+
+/**
+ * Define opções de busca para tipos do plugin
+ *
+ * @param string $itemtype
+ * @return array
+ */
+function plugin_consumables_getAddSearchOptions(string $itemtype): array
+{
     $sopt = [];
 
-    if ($itemtype == "ConsumableItem") {
+    if ($itemtype === "ConsumableItem") {
         if (Session::haveRight("plugin_consumables", READ)) {
             $sopt[185]['table']         = 'glpi_plugin_consumables_fields';
             $sopt[185]['field']         = 'order_ref';
             $sopt[185]['name']          = __('Order reference', 'consumables');
             $sopt[185]['datatype']      = "text";
-            $sopt[185]['joinparams']    = ['jointype'  => 'child',
-                'linkfield' => 'consumableitems_id'];
+            $sopt[185]['joinparams']    = ['jointype'  => 'child', 'linkfield' => 'consumableitems_id'];
             $sopt[185]['massiveaction'] = false;
 
             $sopt[186]['table']         = 'glpi_plugin_consumables_options';
             $sopt[186]['field']         = 'max_cart';
             $sopt[186]['name']          = __('Maximum number allowed for request', 'consumables');
             $sopt[186]['datatype']      = "number";
-            $sopt[186]['linkfield']      = "consumableitems_id";
-            $sopt[186]['joinparams']    = ['jointype'  => 'child',
-                'linkfield' => 'consumableitems_id'];
+            $sopt[186]['linkfield']     = "consumableitems_id";
+            $sopt[186]['joinparams']    = ['jointype'  => 'child', 'linkfield' => 'consumableitems_id'];
             $sopt[186]['massiveaction'] = false;
 
             $sopt[187]['table']         = 'glpi_plugin_consumables_options';
             $sopt[187]['field']         = 'groups';
             $sopt[187]['name']          = __('Allowed groups for request', 'consumables');
             $sopt[187]['datatype']      = "specific";
-            $sopt[187]['linkfield']      = "consumableitems_id";
-            $sopt[187]['joinparams']    = ['jointype'  => 'child',
-                'linkfield' => 'consumableitems_id'];
+            $sopt[187]['linkfield']     = "consumableitems_id";
+            $sopt[187]['joinparams']    = ['jointype'  => 'child', 'linkfield' => 'consumableitems_id'];
             $sopt[187]['massiveaction'] = false;
-            $sopt[187]['nosearch'] = true;
+            $sopt[187]['nosearch']      = true;
         }
     }
 
     return $sopt;
 }
 
-function plugin_consumables_MassiveActions($type)
-{
 
+/**
+ * Define ações em massa para o plugin
+ *
+ * @param string $type
+ * @return array
+ */
+function plugin_consumables_MassiveActions(string $type): array
+{
     switch ($type) {
         case 'ConsumableItem':
             return [
-                Option::class . MassiveAction::CLASS_ACTION_SEPARATOR . 'add_number'
-                   => __('Maximum number allowed for request', 'consumables'),
-                Option::class . MassiveAction::CLASS_ACTION_SEPARATOR . 'add_groups'
-                  => __('Add a group for request', 'consumables')];
-            break;
+                Option::class . MassiveAction::CLASS_ACTION_SEPARATOR . 'add_number' => __('Maximum number allowed for request', 'consumables'),
+                Option::class . MassiveAction::CLASS_ACTION_SEPARATOR . 'add_groups'  => __('Add a group for request', 'consumables')
+            ];
     }
     return [];
 }

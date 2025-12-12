@@ -38,6 +38,8 @@ use Dropdown;
 use Html;
 use MassiveAction;
 use NotificationEvent;
+
+declare(strict_types=1);
 use Session;
 
 if (!defined('GLPI_ROOT')) {
@@ -48,16 +50,27 @@ if (!defined('GLPI_ROOT')) {
  * Class Validation
  *
  */
+
+/**
+ * Class Validation
+ */
 class Validation extends CommonDBTM
 {
-    public static $rightname = "plugin_consumables";
+    public static string $rightname = 'plugin_consumables';
 
-    public static function getTable($classname = null)
+    /**
+     * @param string|null $classname
+     * @return string
+     */
+    public static function getTable(?string $classname = null): string
     {
         return Request::getTable();
     }
 
-    public function rawSearchOptions()
+    /**
+     * @return array
+     */
+    public function rawSearchOptions(): array
     {
         $tab = [];
 
@@ -136,7 +149,11 @@ class Validation extends CommonDBTM
      *
      * @return string
      */
-    public static function getTypeName($nb = 0)
+    /**
+     * @param int $nb
+     * @return string
+     */
+    public static function getTypeName(int $nb = 0): string
     {
         return __('Consumable validation', 'consumables');
     }
@@ -147,15 +164,22 @@ class Validation extends CommonDBTM
      *
      * @return bool|int
      **/
+    /**
+     * @return bool|int
+     */
     public static function canValidate()
     {
-        return Session::haveRight("plugin_consumables_validation", 1);
+        return Session::haveRight('plugin_consumables_validation', 1);
     }
 
     /**
      * Show consumable validation
      */
-    public function showConsumableValidation()
+    /**
+     * Show consumable validation
+     * @return bool|null
+     */
+    public function showConsumableValidation(): ?bool
     {
         if (!$this->canView()) {
             return false;
@@ -302,7 +326,13 @@ class Validation extends CommonDBTM
      *
      * @return int
      */
-    public function validationConsumable($params, $state = CommonITILValidation::WAITING)
+    /**
+     * Validation consumable
+     * @param array $params
+     * @param int $state
+     * @return int
+     */
+    public function validationConsumable(array $params, int $state = CommonITILValidation::WAITING): int
     {
         //        $this->update([
         //            'id' => $params['id'],
@@ -318,14 +348,15 @@ class Validation extends CommonDBTM
     /**
      * @return an|array
      */
-    public function getForbiddenStandardMassiveAction()
+    /**
+     * @return array
+     */
+    public function getForbiddenStandardMassiveAction(): array
     {
         $forbidden = parent::getForbiddenStandardMassiveAction();
-
         $forbidden[] = 'update';
         $forbidden[] = 'clone';
         $forbidden[] = 'purge';
-
         return $forbidden;
     }
 
@@ -338,17 +369,19 @@ class Validation extends CommonDBTM
      * *@since version 0.84
      *
      */
-    public function getSpecificMassiveActions($checkitem = null)
+    /**
+     * @param mixed $checkitem
+     * @return array
+     */
+    public function getSpecificMassiveActions($checkitem = null): array
     {
         $isadmin = static::canValidate();
         $actions = parent::getSpecificMassiveActions($checkitem);
         $prefix = $this->getType() . MassiveAction::CLASS_ACTION_SEPARATOR;
-
         if ($isadmin) {
             $actions[$prefix . 'validate'] = __('Validate');
             $actions[$prefix . 'refuse'] = __('Refuse', 'consumables');
         }
-
         return $actions;
     }
 
@@ -362,15 +395,18 @@ class Validation extends CommonDBTM
      * @internal param array $input of input datas
      *
      */
-    public static function showMassiveActionsSubForm(MassiveAction $ma)
+    /**
+     * @param MassiveAction $ma
+     * @return bool|null
+     */
+    public static function showMassiveActionsSubForm(MassiveAction $ma): ?bool
     {
         $itemtype = $ma->getItemtype(false);
-
         switch ($itemtype) {
             case self::getType():
                 switch ($ma->getAction()) {
-                    case "validate":
-                    case "refuse":
+                    case 'validate':
+                    case 'refuse':
                         Html::textarea([
                             'name' => 'comment',
                             'cols' => 80,
@@ -381,6 +417,7 @@ class Validation extends CommonDBTM
                 }
                 return parent::showMassiveActionsSubForm($ma);
         }
+        return null;
     }
 
     /**
@@ -393,11 +430,17 @@ class Validation extends CommonDBTM
      * @see CommonDBTM::processMassiveActionsForOneItemtype()
      *
      */
+    /**
+     * @param MassiveAction $ma
+     * @param CommonDBTM $item
+     * @param array $ids
+     * @return void
+     */
     public static function processMassiveActionsForOneItemtype(
         MassiveAction $ma,
         CommonDBTM $item,
         array $ids
-    ) {
+    ): void {
         $item = new Request();
         $validation = new self();
         $consumable = new Consumable();

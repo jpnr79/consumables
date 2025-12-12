@@ -43,23 +43,31 @@ if (!defined('GLPI_ROOT')) {
 /**
  * Class Profile
  */
+
+declare(strict_types=1);
+
+/**
+ * Class Profile
+ */
 class Profile extends \Profile
 {
     /**
      * @param CommonGLPI $item
-     * @param int        $withtemplate
-     *
-     * @return string|translated
+     * @param int $withtemplate
+     * @return string
      */
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
+    public function getTabNameForItem(CommonGLPI $item, int $withtemplate = 0): string
     {
-        if ($item->getType() == 'Profile') {
+        if ($item->getType() === 'Profile') {
             return self::createTabEntry(Menu::getMenuName());
         }
         return '';
     }
 
-    public static function getIcon()
+    /**
+     * @return string
+     */
+    public static function getIcon(): string
     {
         return Request::getIcon();
     }
@@ -71,36 +79,47 @@ class Profile extends \Profile
      *
      * @return bool
      */
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
+    /**
+     * @param CommonGLPI $item
+     * @param int $tabnum
+     * @param int $withtemplate
+     * @return bool
+     */
+    public static function displayTabContentForItem(CommonGLPI $item, int $tabnum = 1, int $withtemplate = 0): bool
     {
-        if ($item->getType() == 'Profile') {
-            $ID   = $item->getID();
+        if ($item->getType() === 'Profile') {
+            $ID = $item->getID();
             $prof = new self();
-
-            self::addDefaultProfileInfos($ID, ['plugin_consumables'            => 0,
-                'plugin_consumables_request'    => 0,
-                'plugin_consumables_user'       => 0,
-                'plugin_consumables_group'      => 0,
-                'plugin_consumables_validation' => 0]);
+            self::addDefaultProfileInfos($ID, [
+                'plugin_consumables' => 0,
+                'plugin_consumables_request' => 0,
+                'plugin_consumables_user' => 0,
+                'plugin_consumables_group' => 0,
+                'plugin_consumables_validation' => 0
+            ]);
             $prof->showForm($ID);
         }
-
         return true;
     }
 
     /**
      * @param $ID
      */
-    public static function createFirstAccess($ID)
+    /**
+     * @param int $ID
+     * @return void
+     */
+    public static function createFirstAccess(int $ID): void
     {
-        //85
         self::addDefaultProfileInfos(
             $ID,
-            ['plugin_consumables'            => ALLSTANDARDRIGHT,
-                'plugin_consumables_request'    => 1,
-                'plugin_consumables_user'       => 1,
-                'plugin_consumables_group'      => 1,
-                'plugin_consumables_validation' => 1],
+            [
+                'plugin_consumables' => ALLSTANDARDRIGHT,
+                'plugin_consumables_request' => 1,
+                'plugin_consumables_user' => 1,
+                'plugin_consumables_group' => 1,
+                'plugin_consumables_validation' => 1
+            ],
             true
         );
     }
@@ -112,9 +131,15 @@ class Profile extends \Profile
      *
      * @internal param $profile
      */
-    public static function addDefaultProfileInfos($profiles_id, $rights, $drop_existing = false)
+    /**
+     * @param int $profiles_id
+     * @param array $rights
+     * @param bool $drop_existing
+     * @return void
+     */
+    public static function addDefaultProfileInfos(int $profiles_id, array $rights, bool $drop_existing = false): void
     {
-        $dbu          = new DbUtils();
+        $dbu = new DbUtils();
         $profileRight = new ProfileRight();
         foreach ($rights as $right => $value) {
             if ($dbu->countElementsInTable(
@@ -127,12 +152,12 @@ class Profile extends \Profile
                 'glpi_profilerights',
                 ["profiles_id" => $profiles_id, "name" => $right]
             )) {
-                $myright['profiles_id'] = $profiles_id;
-                $myright['name']        = $right;
-                $myright['rights']      = $value;
+                $myright = [
+                    'profiles_id' => $profiles_id,
+                    'name' => $right,
+                    'rights' => $value
+                ];
                 $profileRight->add($myright);
-
-                //Add right to the current session
                 $_SESSION['glpiactiveprofile'][$right] = $value;
             }
         }
@@ -148,50 +173,49 @@ class Profile extends \Profile
      * @internal param int $items_id id of the profile
      * @internal param value $target url of target
      */
-    public function showForm($profiles_id = 0, $openform = true, $closeform = true)
+    /**
+     * Show profile form
+     * @param int $profiles_id
+     * @param bool $openform
+     * @param bool $closeform
+     * @return void
+     */
+    public function showForm(int $profiles_id = 0, bool $openform = true, bool $closeform = true): void
     {
         $profile = new \Profile();
         echo "<div class='firstbloc'>";
-        if (($canedit = Session::haveRightsOr(self::$rightname, [CREATE, UPDATE, PURGE])) && $openform) {
+        $canedit = Session::haveRightsOr(self::$rightname, [CREATE, UPDATE, PURGE]);
+        if ($canedit && $openform) {
             echo "<form method='post' action='" . $profile->getFormURL() . "'>";
         }
-
         $profile->getFromDB($profiles_id);
-
         $rights = $this->getAllRights();
-        $profile->displayRightsChoiceMatrix($rights, ['default_class' => 'tab_bg_2',
-            'title'         => __('General')]);
-
+        $profile->displayRightsChoiceMatrix($rights, ['default_class' => 'tab_bg_2', 'title' => __('General')]);
         echo "<table class='tab_cadre_fixehov'>";
         echo "<tr class='tab_bg_1'><th colspan='4'>" . __('Advanced', 'consumables') . "</th></tr>\n";
-
-        $effective_rights = ProfileRight::getProfileRights($profiles_id, ['plugin_consumables_user',
+        $effective_rights = ProfileRight::getProfileRights($profiles_id, [
+            'plugin_consumables_user',
             'plugin_consumables_group',
             'plugin_consumables_validation',
-            'plugin_consumables_request']);
-
+            'plugin_consumables_request'
+        ]);
         echo "<tr class='tab_bg_2'>";
         echo "<td>" . __('Consumable validation', 'consumables') . "</td>";
         echo "<td>";
-        Html::showCheckbox(['name'    => '_plugin_consumables_validation[1_0]',
-            'checked' => $effective_rights['plugin_consumables_validation']]);
+        Html::showCheckbox(['name' => '_plugin_consumables_validation[1_0]', 'checked' => $effective_rights['plugin_consumables_validation']]);
         echo "<td>" . __('Make a consumable request', 'consumables') . "</td>";
         echo "<td>";
-        Html::showCheckbox(['name'    => '_plugin_consumables_request[1_0]',
-            'checked' => $effective_rights['plugin_consumables_request']]);
+        Html::showCheckbox(['name' => '_plugin_consumables_request[1_0]', 'checked' => $effective_rights['plugin_consumables_request']]);
         echo "</td>";
         echo "</tr>\n";
-
         echo "<tr class='tab_bg_2'>";
         echo "<td>" . __('Make a consumable request for all users', 'consumables') . "</td>";
         echo "<td>";
-        Html::showCheckbox(['name'    => '_plugin_consumables_user[1_0]',
-            'checked' => $effective_rights['plugin_consumables_user']]);
+        Html::showCheckbox(['name' => '_plugin_consumables_user[1_0]', 'checked' => $effective_rights['plugin_consumables_user']]);
         echo "</td>";
         echo "<td>" . __('Make a consumable request for my groups', 'consumables') . "</td>";
         echo "<td>";
-        Html::showCheckbox(['name'    => '_plugin_consumables_group[1_0]',
-            'checked' => $effective_rights['plugin_consumables_group']]);
+        Html::showCheckbox(['name' => '_plugin_consumables_group[1_0]', 'checked' => $effective_rights['plugin_consumables_group']]);
         echo "</td>";
         echo "</tr>\n";
         echo "</table>";
@@ -202,7 +226,6 @@ class Profile extends \Profile
             echo "</div>\n";
             Html::closeForm();
         }
-
         echo "</div>";
     }
 

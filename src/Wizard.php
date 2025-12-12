@@ -39,17 +39,26 @@ if (!defined('GLPI_ROOT')) {
  * Class Wizard
  *
  */
+
+declare(strict_types=1);
+
+/**
+ * Class Wizard
+ */
 class Wizard extends CommonDBTM
 {
-
-    public static $rightname = "plugin_consumables";
+    public static string $rightname = 'plugin_consumables';
 
    /**
     * @param int $nb
     *
     * @return string
     */
-    public static function getTypeName($nb = 0)
+    /**
+     * @param int $nb
+     * @return string
+     */
+    public static function getTypeName(int $nb = 0): string
     {
         return __('Consumables wizard', 'consumables');
     }
@@ -57,11 +66,13 @@ class Wizard extends CommonDBTM
     /**
     * Show config menu
     */
-    public function showMenu()
+    /**
+     * Show config menu
+     * @return bool|null
+     */
+    public function showMenu(): ?bool
     {
-
         $request = new Request();
-
         if (!$this->canView() && !$request->canRequest()) {
             return false;
         }
@@ -98,9 +109,13 @@ class Wizard extends CommonDBTM
     *
     * @param $step
     */
-    public function showWizard($step)
+    /**
+     * Show wizard form of the current step
+     * @param string $step
+     * @return void
+     */
+    public function showWizard(string $step): void
     {
-
         echo "<div class='consumables_wizard'>";
         switch ($step) {
             case 'consumablerequest':
@@ -114,4 +129,5 @@ class Wizard extends CommonDBTM
         }
         echo "</div>";
     }
+}
 }

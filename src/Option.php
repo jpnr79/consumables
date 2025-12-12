@@ -38,16 +38,20 @@ use MassiveAction;
 use Toolbox;
 
 if (!defined('GLPI_ROOT')) {
+    declare(strict_types=1);
     die("Sorry. You can't access directly to this file");
 }
 
 /**
  * Class Option
  */
+
+/**
+ * Class Option
+ */
 class Option extends CommonDBTM
 {
-
-    public static $rightname = "plugin_consumables";
+    public static string $rightname = 'plugin_consumables';
 
    /**
     * Return the localized name of the current Type
@@ -57,9 +61,14 @@ class Option extends CommonDBTM
     *
     * @return string
     **/
-    public static function getTypeName($nb = 0)
+    /**
+     * Return the localized name of the current Type
+     *
+     * @param int $nb
+     * @return string
+     */
+    public static function getTypeName(int $nb = 0): string
     {
-
         return __('Consumable request options', 'consumables');
     }
 
@@ -70,9 +79,13 @@ class Option extends CommonDBTM
     *
     * @return bool
     */
-    public function showForConsumable($item)
+    /**
+     * Show options for a consumable item
+     * @param object $item
+     * @return bool|null
+     */
+    public function showForConsumable($item): ?bool
     {
-
         if (!$this->canView()) {
             return false;
         }
@@ -84,6 +97,7 @@ class Option extends CommonDBTM
             $data = $this->initConfig($item->fields['id']);
         }
         $this->listOptionsForConsumable($data, $item);
+        return null;
     }
 
    /**
@@ -93,11 +107,18 @@ class Option extends CommonDBTM
     *
     * @return array
     */
-    public function initConfig($ID)
+    /**
+     * Initialize the original configuration
+     * @param int $ID
+     * @return array
+     */
+    public function initConfig(int $ID): array
     {
-        $input['consumableitems_id'] = $ID;
-        $input['groups']         = "";
-        $input['max_cart']       = "0";
+        $input = [
+            'consumableitems_id' => $ID,
+            'groups' => '',
+            'max_cart' => '0',
+        ];
         $this->add($input);
         return $this->fields;
     }
@@ -110,10 +131,15 @@ class Option extends CommonDBTM
     *
     * @internal param \type $fields
     */
-    public function listOptionsForConsumable($data, $item)
+    /**
+     * Show list of options for a consumable item
+     * @param array $data
+     * @param object $item
+     * @return void
+     */
+    public function listOptionsForConsumable(array $data, $item): void
     {
         global $CFG_GLPI;
-
         $ID = $data['id'];
 
         echo "<div class='center'>";
@@ -190,9 +216,14 @@ class Option extends CommonDBTM
     * @param $item
     * @param $data
     */
-    public static function showAddGroup($item, $data)
+    /**
+     * Show add group form for a consumable item
+     * @param object $item
+     * @param array $data
+     * @return void
+     */
+    public static function showAddGroup($item, array $data): void
     {
-
         echo "<form action='" . Toolbox::getItemTypeFormURL(self::class) . "' method='post'>";
         echo "<table class='tab_cadre_fixe' cellpadding='5'>";
         echo "<tr class='tab_bg_1 center'>";
@@ -225,7 +256,12 @@ class Option extends CommonDBTM
     *
     * @return array
     */
-    public function prepareInputForUpdate($params)
+    /**
+     * Prepare input for update
+     * @param array $params
+     * @return array
+     */
+    public function prepareInputForUpdate(array $params): array
     {
         $dbu = new DbUtils();
 
@@ -292,6 +328,10 @@ class Option extends CommonDBTM
    /**
     * @return mixed
     */
+    /**
+     * Get max cart value
+     * @return mixed
+     */
     public function getMaxCart()
     {
         return $this->fields['max_cart'];
@@ -300,13 +340,16 @@ class Option extends CommonDBTM
    /**
     * @return mixed
     */
-    public function getAllowedGroups()
+    /**
+     * Get allowed groups
+     * @return array
+     */
+    public function getAllowedGroups(): array
     {
         if (!empty($this->fields['groups'])) {
             return json_decode($this->fields['groups'], true);
-        } else {
-            return [];
         }
+        return [];
     }
 
    /**
@@ -314,9 +357,13 @@ class Option extends CommonDBTM
     *
     * @see CommonDBTM::showMassiveActionsSubForm()
     **/
-    public static function showMassiveActionsSubForm(MassiveAction $ma)
+    /**
+     * Show massive actions subform
+     * @param MassiveAction $ma
+     * @return bool|null
+     */
+    public static function showMassiveActionsSubForm(MassiveAction $ma): ?bool
     {
-
         switch ($ma->getAction()) {
             case "add_number":
                 echo "</br>&nbsp;" . __('Maximum number allowed for request', 'consumables') . " : ";
@@ -344,11 +391,18 @@ class Option extends CommonDBTM
     *
     * @see CommonDBTM::processMassiveActionsForOneItemtype()
     **/
+    /**
+     * Process massive actions for one itemtype
+     * @param MassiveAction $ma
+     * @param CommonDBTM $item
+     * @param array $ids
+     * @return void
+     */
     public static function processMassiveActionsForOneItemtype(
         MassiveAction $ma,
         CommonDBTM $item,
         array $ids
-    ) {
+    ): void {
 
         $option = new self();
 
@@ -424,7 +478,14 @@ class Option extends CommonDBTM
     * @param $values
     * @param $options   array
     **/
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
+    /**
+     * Get specific value to display
+     * @param string $field
+     * @param array|string $values
+     * @param array $options
+     * @return string
+     */
+    public static function getSpecificValueToDisplay($field, $values, array $options = []): string
     {
         if (!is_array($values)) {
             $values = [$field => $values];
@@ -432,14 +493,15 @@ class Option extends CommonDBTM
         switch ($field) {
             case 'groups':
                 $list_groups = '';
-                $groups      = json_decode($values['groups'], true);
+                $groups = json_decode($values['groups'], true);
                 if (!empty($groups)) {
-                    foreach ($groups as $key => $val) {
-                        $list_groups .= Dropdown::getDropdownName("glpi_groups", $val) . "<br>";
+                    foreach ($groups as $val) {
+                        $list_groups .= Dropdown::getDropdownName('glpi_groups', $val) . '<br>';
                     }
                 }
                 return $list_groups;
         }
         return parent::getSpecificValueToDisplay($field, $values, $options);
     }
+}
 }

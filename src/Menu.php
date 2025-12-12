@@ -39,34 +39,49 @@ class Menu extends CommonGLPI
 {
     public static $rightname = 'plugin_consumables';
 
-   /**
-    * @return string
-    */
-    public static function getMenuName()
+    declare(strict_types=1);
+
+    /**
+     * Class Menu
+     */
+    class Menu extends CommonGLPI
     {
-        return _n('Consumable request', 'Consumable requests', 1, 'consumables');
-    }
+        public static $rightname = 'plugin_consumables';
+
+        /**
+         * @return string
+         */
+        public static function getMenuName(): string
+        {
+            return _n('Consumable request', 'Consumable requests', 1, 'consumables');
+        }
+
 
    /**
     * @return array
     */
     public static function getMenuContent()
     {
-
-        $menu          = [];
+    public static function getMenuContent(): array
+    {
+        $menu = [];
         $menu['title'] = self::getMenuName();
-        $menu['page']  = Wizard::getSearchURL(false);
+        $menu['page'] = Wizard::getSearchURL(false);
         if (Wizard::canCreate()) {
             $menu['links']['search'] = Wizard::getSearchURL(false);
-            $menu['links']['add']    = Wizard::getSearchURL(false);
+            $menu['links']['add'] = Wizard::getSearchURL(false);
         }
-
         $menu['icon'] = Request::getIcon();
-
         return $menu;
     }
 
+
     public static function removeRightsFromSession()
+    /**
+     * Remove rights from session for this menu
+     * @return void
+     */
+    public static function removeRightsFromSession(): void
     {
         if (isset($_SESSION['glpimenu']['plugins']['types'][Menu::class])) {
             unset($_SESSION['glpimenu']['plugins']['types'][Menu::class]);

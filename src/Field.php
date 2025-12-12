@@ -45,11 +45,21 @@ if (!defined('GLPI_ROOT')) {
  * @package    Consumables
  * @author     Ludovic Dupont
  */
+
+declare(strict_types=1);
+
+/**
+ * Class Field
+ *
+ * This class shows the plugin main page
+ *
+ * @package    Consumables
+ * @author     Ludovic Dupont
+ */
 class Field extends CommonDBTM
 {
-
-    static $types     = ['ConsumableItem'];
-    static $rightname = "plugin_consumables";
+    public static array $types = ['ConsumableItem'];
+    public static string $rightname = 'plugin_consumables';
 
 
    /**
@@ -57,7 +67,11 @@ class Field extends CommonDBTM
     *
     * @return string
     */
-    static function getTypeName($nb = 0)
+    /**
+     * @param int $nb
+     * @return string
+     */
+    public static function getTypeName(int $nb = 0): string
     {
         return _n('Consumable request', 'Consumable requests', 1, 'consumables');
     }
@@ -68,17 +82,20 @@ class Field extends CommonDBTM
     *
     * @param $params
     */
-    public static function addFieldOrderReference($params)
+    /**
+     * Show order reference field
+     * @param array $params
+     * @return bool|null
+     */
+    public static function addFieldOrderReference(array $params): ?bool
     {
-
         $item = $params['item'];
-
-        if (!in_array($item::getType(), self::$types)) {
+        if (!in_array($item::getType(), self::$types, true)) {
             return false;
         }
         $consumableitems_id = $item->getID();
-        $field          = new self();
-        if ($field->getFromDBByCrit(["consumableitems_id" => $consumableitems_id])) {
+        $field = new self();
+        if ($field->getFromDBByCrit(['consumableitems_id' => $consumableitems_id])) {
             echo "<div class='form-field row col-12 col-sm-6  mb-2'>";
             echo "<label class='col-form-label col-xxl-4 text-xxl-end'>";
             echo  __('Order reference', 'consumables');
@@ -88,6 +105,7 @@ class Field extends CommonDBTM
             echo "</div>";
             echo "</div>";
         }
+        return null;
     }
 
    /**
@@ -95,13 +113,19 @@ class Field extends CommonDBTM
     *
     * @param ConsumableItem $consumableItem
     */
-    static function postAddConsumable(ConsumableItem $consumableItem)
+    /**
+     * Post add consumable
+     * @param ConsumableItem $consumableItem
+     * @return void
+     */
+    public static function postAddConsumable(ConsumableItem $consumableItem): void
     {
-
         $field = new self();
         if (isset($consumableItem->input['order_ref'])) {
-            $field->add(['consumableitems_id' => $consumableItem->fields['id'],
-                      'order_ref'      => $consumableItem->input['order_ref']]);
+            $field->add([
+                'consumableitems_id' => $consumableItem->fields['id'],
+                'order_ref' => $consumableItem->input['order_ref']
+            ]);
         }
     }
 
@@ -110,17 +134,23 @@ class Field extends CommonDBTM
     *
     * @param ConsumableItem $consumableItem
     */
-    static function preUpdateConsumable(ConsumableItem $consumableItem)
+    /**
+     * Pre update consumable
+     * @param ConsumableItem $consumableItem
+     * @return void
+     */
+    public static function preUpdateConsumable(ConsumableItem $consumableItem): void
     {
-
         $field = new self();
-        $field->getFromDBByCrit(["consumableitems_id" => $consumableItem->input['id']]);
-
+        $field->getFromDBByCrit(['consumableitems_id' => $consumableItem->input['id']]);
         if (!empty($field->fields)) {
-            $field->update(['id'        => $field->fields['id'],
-                         'order_ref' => $consumableItem->input['order_ref']]);
+            $field->update([
+                'id' => $field->fields['id'],
+                'order_ref' => $consumableItem->input['order_ref']
+            ]);
         } else {
             self::postAddConsumable($consumableItem);
         }
     }
+}
 }
