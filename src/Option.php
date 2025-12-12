@@ -504,4 +504,4 @@ class Option extends CommonDBTM
         return parent::getSpecificValueToDisplay($field, $values, $options);
     }
 }
-}
+

@@ -31,6 +31,7 @@
 namespace GlpiPlugin\Consumables;
 
 use CommonGLPI;
+use GlpiPlugin\Consumables\Wizard;
 
 /**
  * Class Menu
@@ -39,14 +40,8 @@ class Menu extends CommonGLPI
 {
     public static $rightname = 'plugin_consumables';
 
-    declare(strict_types=1);
+// declare(strict_types=1); must be at the top of the file, not inside a class
 
-    /**
-     * Class Menu
-     */
-    class Menu extends CommonGLPI
-    {
-        public static $rightname = 'plugin_consumables';
 
         /**
          * @return string
@@ -57,11 +52,9 @@ class Menu extends CommonGLPI
         }
 
 
-   /**
-    * @return array
-    */
-    public static function getMenuContent()
-    {
+    /**
+     * @return array
+     */
     public static function getMenuContent(): array
     {
         $menu = [];
@@ -75,8 +68,7 @@ class Menu extends CommonGLPI
         return $menu;
     }
 
-
-    public static function removeRightsFromSession()
+    /**
     /**
      * Remove rights from session for this menu
      * @return void

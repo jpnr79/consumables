@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /*
  * @version $Id: HEADER 15930 2011-10-30 15:47:55Z tsmr $
  -------------------------------------------------------------------------
@@ -27,24 +28,16 @@
  --------------------------------------------------------------------------
  */
 
+
 namespace GlpiPlugin\Consumables;
 
 use CommonDBTM;
+use Plugin;
 
 if (!defined('GLPI_ROOT')) {
     die("Sorry. You can't access directly to this file");
 }
 
-/**
- * Class Wizard
- *
- */
-
-declare(strict_types=1);
-
-/**
- * Class Wizard
- */
 class Wizard extends CommonDBTM
 {
     public static string $rightname = 'plugin_consumables';
@@ -58,9 +51,10 @@ class Wizard extends CommonDBTM
      * @param int $nb
      * @return string
      */
+
     public static function getTypeName(int $nb = 0): string
     {
-        return __('Consumables wizard', 'consumables');
+        return Plugin::translate('Consumables wizard', 'consumables');
     }
 
     /**
@@ -77,9 +71,10 @@ class Wizard extends CommonDBTM
             return false;
         }
 
+
         echo "<h3><div class='alert alert-secondary' role='alert'>";
         echo "<i class='ti ti-shopping-cart-plus'></i>&nbsp;";
-        echo __("Consumable request", "consumables");
+        echo Plugin::translate("Consumable request", "consumables");
         echo "</div></h3>";
 
         echo "<div class='row consumables_wizard_row' style='margin: 0 auto;'>";
@@ -88,27 +83,18 @@ class Wizard extends CommonDBTM
             echo "<div class='center col-md-5 consumables_wizard_rank'>";
             echo "<a class='consumables_menu_a' href='" . PLUGIN_CONSUMABLES_WEBDIR . "/front/wizard.form.php?action=consumablerequest'>";
             echo "<i class='thumbnail ti ti-shopping-cart-plus' style='font-size: 4.5em;'></i>";
-            echo "<br><br>" . __("Consumable request", "consumables") . "<br></a>";
+            echo "<br><br>" . Plugin::translate("Consumable request", "consumables") . "<br></a>";
             echo "</div>";
         }
-
-        if ($request->canValidate()) {
-            echo "<div style='width: 10px;'></div>";
-            // Consumable validation
-            echo "<div class='center col-md-6 consumables_wizard_rank'>";
-            echo "<a class='consumables_menu_a' href='" . PLUGIN_CONSUMABLES_WEBDIR . "/front/wizard.form.php?action=consumablevalidation'>";
-            echo "<i class='thumbnail ti ti-clipboard-check' style='font-size: 4.5em;'></i>";
-            echo "<br><br>" . __("Consumable validation", "consumables") . "</a>";
-            echo "</div>";
-        }
+        // Consumable validation
+        echo "<div class='center col-md-6 consumables_wizard_rank'>";
+        echo "<a class='consumables_menu_a' href='" . PLUGIN_CONSUMABLES_WEBDIR . "/front/wizard.form.php?action=consumablevalidation'>";
+        echo "<i class='thumbnail ti ti-clipboard-check' style='font-size: 4.5em;'></i>";
+        echo "<br><br>" . Plugin::translate("Consumable validation", "consumables") . "</a>";
+        echo "</div>";
         echo "</div>";
     }
 
-   /**
-    * Show wizard form of the current step
-    *
-    * @param $step
-    */
     /**
      * Show wizard form of the current step
      * @param string $step
@@ -129,5 +115,4 @@ class Wizard extends CommonDBTM
         }
         echo "</div>";
     }
-}
 }

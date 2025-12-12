@@ -153,4 +153,3 @@ class Servicecatalog extends CommonGLPI
         return '';
     }
 }
-}

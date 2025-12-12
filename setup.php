@@ -46,7 +46,8 @@ define('PLUGIN_CONSUMABLES_VERSION', '2.1.2');
 
 if (!defined("PLUGIN_CONSUMABLES_DIR")) {
     define("PLUGIN_CONSUMABLES_DIR", Plugin::getPhpDir("consumables"));
-    define("PLUGIN_CONSUMABLES_WEBDIR", $root);
+    // Fix: $root is undefined. Use GLPI_ROOT or set to empty string if not needed.
+    define("PLUGIN_CONSUMABLES_WEBDIR", defined('GLPI_ROOT') ? GLPI_ROOT : '');
 }
 
 // Init the hooks of the plugins - Needed
@@ -60,8 +61,8 @@ function plugin_init_consumables(): void
     $CFG_GLPI['glpitablesitemtype'][Validation::class] = 'glpi_plugin_consumables_requests';
     $PLUGIN_HOOKS['csrf_compliant']['consumables'] = true;
     $PLUGIN_HOOKS['change_profile']['consumables'] = [Profile::class, 'initProfile'];
-    $PLUGIN_HOOKS[Hooks::ADD_CSS]['consumables'] = 'css/consumables.css';
-    $PLUGIN_HOOKS[Hooks::ADD_JAVASCRIPT]['consumables'] = 'js/consumables.js';
+    $PLUGIN_HOOKS[Hooks::ADD_CSS]['consumables'] = 'public/css/consumables.css';
+    $PLUGIN_HOOKS[Hooks::ADD_JAVASCRIPT]['consumables'] = 'public/js/consumables.js';
 
     if (Session::getLoginUserID()) {
         $PLUGIN_HOOKS['post_item_form']['consumables'] = [Field::class, 'addFieldOrderReference'];
