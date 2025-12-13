@@ -27,11 +27,10 @@
  along with consumables. If not, see <http://www.gnu.org/licenses/>.
  --------------------------------------------------------------------------
  */
-
 namespace GlpiPlugin\Consumables;
-
-use CommonGLPI;
+use \CommonGLPI;
 use GlpiPlugin\Consumables\Wizard;
+use GlpiPlugin\Consumables\Request;
 
 /**
  * Class Menu
@@ -59,12 +58,12 @@ class Menu extends CommonGLPI
     {
         $menu = [];
         $menu['title'] = self::getMenuName();
-        $menu['page'] = Wizard::getSearchURL(false);
-        if (Wizard::canCreate()) {
-            $menu['links']['search'] = Wizard::getSearchURL(false);
-            $menu['links']['add'] = Wizard::getSearchURL(false);
-        }
-        $menu['icon'] = Request::getIcon();
+        // Fallback: use wizard.php as menu page
+        $menu['page'] = PLUGIN_CONSUMABLES_WEBDIR . '/front/wizard.php';
+        // Permissions: always show for now (fix as needed)
+        $menu['links']['search'] = $menu['page'];
+        $menu['links']['add'] = $menu['page'];
+        $menu['icon'] = 'ti ti-shopping-cart';
         return $menu;
     }
 

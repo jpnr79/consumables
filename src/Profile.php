@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * @version $Id: HEADER 15930 2011-10-30 15:47:55Z tsmr $
  -------------------------------------------------------------------------
@@ -43,14 +45,16 @@ if (!defined('GLPI_ROOT')) {
 /**
  * Class Profile
  */
-
-declare(strict_types=1);
-
-/**
- * Class Profile
- */
 class Profile extends \Profile
 {
+    /**
+     * Rightname used for session checks
+     *
+     * @var string
+     */
+    protected static $rightname = 'plugin_consumables';
+
+    public static function createTabEntry(...$args) { return $args[0] ?? ''; }
     /**
      * @param CommonGLPI $item
      * @param int $withtemplate
@@ -326,6 +330,7 @@ class Profile extends \Profile
                 }
             }
         }
+        return true;
     }
 
     /**

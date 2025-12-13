@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * @version $Id: HEADER 15930 2011-10-30 15:47:55Z tsmr $
  -------------------------------------------------------------------------
@@ -34,12 +36,9 @@ use CommonITILValidation;
 use ConsumableItem;
 use ConsumableItemType;
 use Dropdown;
-use Glpi\RichText\RichText;
 use Group;
 use Html;
 use NotificationTarget;
-
-declare(strict_types=1);
 use User;
 
 if (!defined('GLPI_ROOT')) {
@@ -53,8 +52,33 @@ if (!defined('GLPI_ROOT')) {
 /**
  * Class NotificationTargetRequest
  */
+/**
+ * @property array $data
+ * @property array $tag_descriptions
+ * @property mixed $obj
+ */
 class NotificationTargetRequest extends NotificationTarget
 {
+    /**
+     * Dynamic data used by notification templates
+     *
+     * @var array
+     */
+    public $data = [];
+
+    /**
+     * Tag descriptions list
+     *
+     * @var array
+     */
+    public $tag_descriptions = [];
+
+    /**
+     * Associated object
+     *
+     * @var mixed
+     */
+    public $obj = null;
     public const CONSUMABLE_REQUEST = 'ConsumableRequest';
     public const CONSUMABLE_RESPONSE = 'ConsumableResponse';
     public const VALIDATOR = 30;
@@ -79,7 +103,7 @@ class NotificationTargetRequest extends NotificationTarget
      * @param mixed $emitter
      * @return bool
      */
-    public function validateSendTo(string $event, array $infos, bool $notify_me = false, $emitter = null): bool
+    public function validateSendTo($event, $infos, $notify_me = false, $emitter = null): bool
     {
         if (in_array($event, [self::CONSUMABLE_REQUEST, self::CONSUMABLE_RESPONSE], true)) {
             return true;
@@ -92,7 +116,7 @@ class NotificationTargetRequest extends NotificationTarget
      * @param array $options
      * @return void
      */
-    public function addDataForTemplate(string $event, array $options = []): void
+    public function addDataForTemplate($event, $options = []): void
     {
         $this->data['##lang.consumable.entity##'] = __('Entity');
         $this->data['##lang.consumable.id##'] = __('Consumable ID', 'consumables');
@@ -147,7 +171,7 @@ class NotificationTargetRequest extends NotificationTarget
 
         $this->data['consumabledata'][] = $tmp;
         if (isset($options['comment'])) {
-            $this->data['##consumablerequest.comment##'] = RichText::getSafeHtml($options['comment']);
+            $this->data['##consumablerequest.comment##'] = \RichText::getSafeHtml($options['comment']);
         }
     }
 

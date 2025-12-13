@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /*
  * @version $Id: HEADER 15930 2011-10-30 15:47:55Z tsmr $
  -------------------------------------------------------------------------
@@ -26,22 +27,15 @@
  along with consumables. If not, see <http://www.gnu.org/licenses/>.
  --------------------------------------------------------------------------
  */
-
 namespace GlpiPlugin\Consumables;
-
 use CommonGLPI;
+use GlpiPlugin\Consumables\Request;
 use Session;
 
 if (!defined('GLPI_ROOT')) {
     die("Sorry. You can't access directly to this file");
 }
 
-
-/**
- * Class Servicecatalog
- */
-
-declare(strict_types=1);
 
 /**
  * Class Servicecatalog

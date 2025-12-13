@@ -1,5 +1,5 @@
 <?php
-
+declare(strict_types=1);
 /*
  * @version $Id: HEADER 15930 2011-10-30 15:47:55Z tsmr $
  -------------------------------------------------------------------------
@@ -38,9 +38,15 @@ use Dropdown;
 use Html;
 use MassiveAction;
 use NotificationEvent;
-
-declare(strict_types=1);
 use Session;
+
+// Ensure Request class is available for static analysis and runtime when this file is included
+if (!class_exists('GlpiPlugin\\Consumables\\Request')) {
+    $req = __DIR__ . '/Request.php';
+    if (is_readable($req)) {
+        require_once $req;
+    }
+}
 
 if (!defined('GLPI_ROOT')) {
     die("Sorry. You can't access directly to this file");
@@ -153,9 +159,18 @@ class Validation extends CommonDBTM
      * @param int $nb
      * @return string
      */
-    public static function getTypeName(int $nb = 0): string
+    public static function getTypeName($nb = 0)
     {
         return __('Consumable validation', 'consumables');
+    }
+
+    /**
+     * Return a human readable error message for the given error code.
+     * Used by massive actions handling.
+     */
+    public function getErrorMessage($code): string
+    {
+        return '';
     }
 
     /**
@@ -315,6 +330,7 @@ class Validation extends CommonDBTM
         echo Html::scriptBlock(
             '$(document).ready(function() {consumables_initJs("' . PLUGIN_CONSUMABLES_WEBDIR . '");});'
         );
+        return null;
     }
 
 
@@ -399,7 +415,7 @@ class Validation extends CommonDBTM
      * @param MassiveAction $ma
      * @return bool|null
      */
-    public static function showMassiveActionsSubForm(MassiveAction $ma): ?bool
+    public function showMassiveActionsSubForm($ma = null): ?bool
     {
         $itemtype = $ma->getItemtype(false);
         switch ($itemtype) {
@@ -415,7 +431,7 @@ class Validation extends CommonDBTM
                         ]);
                         break;
                 }
-                return parent::showMassiveActionsSubForm($ma);
+                return parent::showMassiveActionsSubFormStatic($ma);
         }
         return null;
     }

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /*
  * @version $Id: HEADER 15930 2011-10-30 15:47:55Z tsmr $
  -------------------------------------------------------------------------
@@ -30,7 +31,7 @@
 namespace GlpiPlugin\Consumables;
 
 use CommonDBTM;
-use ConsumableItem;
+use GlpiPlugin\Consumables\ConsumableItem;
 use Html;
 
 if (!defined('GLPI_ROOT')) {
@@ -45,19 +46,83 @@ if (!defined('GLPI_ROOT')) {
  * @package    Consumables
  * @author     Ludovic Dupont
  */
-
-declare(strict_types=1);
-
-/**
- * Class Field
- *
- * This class shows the plugin main page
- *
- * @package    Consumables
- * @author     Ludovic Dupont
- */
 class Field extends CommonDBTM
 {
+    /**
+     * Fields property for runtime compatibility
+     * @var array
+     */
+    public $fields = [];
+
+    /**
+     * Find a record by criteria and load it into $this->fields
+     * @param array $criteria
+     * @return bool
+     */
+    public function getFromDBByCrit(array $criteria): bool
+    {
+        global $DB;
+        $table = 'glpi_plugin_consumables_fields';
+        $where = [];
+        foreach ($criteria as $k => $v) {
+            $where[] = "$k = '" . addslashes($v) . "'";
+        }
+        $sql = "SELECT * FROM $table WHERE " . implode(' AND ', $where) . " LIMIT 1";
+        $res = isset($DB) ? $DB->query($sql) : false;
+        if ($res && $DB->numrows($res) > 0) {
+            $this->fields = $DB->fetch_assoc($res);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Add a new record
+     * @param array $input
+     * @return bool
+     */
+    public function add(array $input, $history = null): bool
+    {
+        global $DB;
+        $table = 'glpi_plugin_consumables_fields';
+        $keys = array_keys($input);
+        $values = array_map(function($v) { return "'" . addslashes($v) . "'"; }, array_values($input));
+        $sql = "INSERT INTO $table (" . implode(',', $keys) . ") VALUES (" . implode(',', $values) . ")";
+        $res = isset($DB) ? $DB->query($sql) : false;
+        if ($res) {
+            $this->fields = $input;
+            $this->fields['id'] = isset($DB) ? $DB->insert_id() : 0;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Update a record
+     * @param array $input
+     * @return bool
+     */
+    public function update(array $input, $history = null, $options = null): bool
+    {
+        global $DB;
+        $table = 'glpi_plugin_consumables_fields';
+        if (!isset($input['id'])) return false;
+        $id = (int)$input['id'];
+        $sets = [];
+        foreach ($input as $k => $v) {
+            if ($k === 'id') continue;
+            $sets[] = "$k = '" . addslashes($v) . "'";
+        }
+        $sql = "UPDATE $table SET " . implode(',', $sets) . " WHERE id = $id";
+        $res = isset($DB) ? $DB->query($sql) : false;
+        if ($res) {
+            foreach ($input as $k => $v) {
+                $this->fields[$k] = $v;
+            }
+            return true;
+        }
+        return false;
+    }
     public static array $types = ['ConsumableItem'];
     public static string $rightname = 'plugin_consumables';
 
@@ -71,7 +136,7 @@ class Field extends CommonDBTM
      * @param int $nb
      * @return string
      */
-    public static function getTypeName(int $nb = 0): string
+    public static function getTypeName($nb = 0)
     {
         return _n('Consumable request', 'Consumable requests', 1, 'consumables');
     }
@@ -101,7 +166,8 @@ class Field extends CommonDBTM
             echo  __('Order reference', 'consumables');
             echo "</label>";
             echo "<div class='col-xxl-7  field-container'>";
-            echo Html::input('name', ['value' => $field->fields['order_ref'], 'size' => 40]);
+            // Fallback: simple input for order_ref if Html::input is not available
+            echo "<input type='text' name='order_ref' value='" . htmlspecialchars($field->fields['order_ref']) . "' size='40'>";
             echo "</div>";
             echo "</div>";
         }
