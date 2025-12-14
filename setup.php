@@ -6,7 +6,7 @@ declare(strict_types=1);
  *
  * @return array
  */
-function plugin_version_consumables_modifications() {
+function plugin_version_modifications() {
     return [
         // Example: [ 'version' => '1.0.0', 'query' => 'CREATE TABLE ...' ]
         // Add migration steps here as needed for future versions
