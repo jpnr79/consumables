@@ -1,62 +1,15 @@
-    /**
-     * Find a record by criteria and load it into $this->fields
-        public $fields = [];
-        public function getFromDB($id) { return false; }
-        public function getFromDBByCrit($crit) { return false; }
-        public function add($input) { return false; }
-        public function can($id = -1, $right = null, $input = null) { return true; }
-        public function update($input) { return true; }
-        public function getID() { return 0; }
-        public static function getSpecificValueToDisplay($field, $values, $options = []) { return ''; }
-        public static function processMassiveActionsForOneItemtype($ma, $item, $ids) { return; }
-    }
-}
-if (!class_exists('Dropdown')) {
-    class Dropdown {
-        public static function getDropdownName($table, $id) { return "Name $id"; }
-        public static function showNumber($name, $options = []) { return; }
-    }
-}
-if (!class_exists('Html')) {
-    class Html {
-        public static function hidden($name, $opts = []) { return ''; }
-        public static function submit($label, $opts = []) { return ''; }
-        public static function closeForm() { return ''; }
-    }
-}
-if (!class_exists('Group')) {
-    class Group {
-        public static function dropdown($opts = []) { return; }
-        public static function getType() { return 'Group'; }
-    }
-}
-if (!class_exists('MassiveAction')) {
-    class MassiveAction {
-        public function getAction() { return ''; }
-        public function getInput() { return []; }
-        public function itemDone($type, $id, $status) { return; }
-        const ACTION_OK = 1;
-        const ACTION_KO = 0;
-    }
-}
-if (!class_exists('DbUtils')) {
-    class DbUtils {
-        public function getAllDataFromTable($table, $restrict = null) { return []; }
-    }
-}
-if (!class_exists('Toolbox')) {
-    class Toolbox {
-        public static function getItemTypeFormURL($class) { return ''; }
-    }
-}
-if (!function_exists('_sx')) { function _sx($context, $str, $domain = null) { return $str; } }
-if (!function_exists('_x')) { function _x($context, $str, $domain = null) { return $str; } }
+<?php
 
+declare(strict_types=1);
 
-if (!defined('GLPI_ROOT')) {
-    declare(strict_types=1);
-    die("Sorry. You can't access directly to this file");
-}
+namespace GlpiPlugin\Consumables;
+
+use CommonDBTM;
+use DbUtils;
+use Dropdown;
+use Html;
+use MassiveAction;
+use Toolbox;
 
 class Option extends CommonDBTM
 {
@@ -65,7 +18,7 @@ class Option extends CommonDBTM
      * @var array
      */
     public $fields = [];
-    public static string $rightname = 'plugin_consumables';
+    public static $rightname = 'plugin_consumables';
 
    /**
     * Return the localized name of the current Type
@@ -270,17 +223,18 @@ class Option extends CommonDBTM
     */
     /**
      * Prepare input for update
-     * @param array $params
+     * @param array $input
      * @return array
      */
-    public function prepareInputForUpdate(array $params): array
+    public function prepareInputForUpdate($input)
     {
         $dbu = new DbUtils();
 
-        if (isset($params["add_groups"])) {
+        if (isset($input["add_groups"])) {
+            $original_input = $input;
             $input = [];
 
-            $restrict = ["id" => $params['id']];
+            $restrict = ["id" => $original_input['id']];
             $configs  = $dbu->getAllDataFromTable("glpi_plugin_consumables_options");
 
             $groups = [];
@@ -289,24 +243,27 @@ class Option extends CommonDBTM
                     if (!empty($config["groups"])) {
                         $groups = json_decode($config["groups"], true);
                         if (count($groups) > 0) {
-                            if (!in_array($params["_groups_id"], $groups)) {
-                                 array_push($groups, $params["_groups_id"]);
+                            if (!in_array($original_input["_groups_id"], $groups)) {
+                                 array_push($groups, $original_input["_groups_id"]);
                             }
                         } else {
-                            $groups = [$params["_groups_id"]];
+                            $groups = [$original_input["_groups_id"]];
                         }
                     } else {
-                        $groups = [$params["_groups_id"]];
+                        $groups = [$original_input["_groups_id"]];
                     }
                 }
             }
 
             $group = json_encode($groups);
 
-            $input['id']     = $params['id'];
+            $input['id']     = $original_input['id'];
             $input['groups'] = $group;
-        } elseif (isset($params["delete_groups"])) {
-            $restrict = ["id" => $params['id']];
+        } elseif (isset($input["delete_groups"])) {
+            $original_input = $input;
+            $input = [];
+
+            $restrict = ["id" => $original_input['id']];
             $configs  = $dbu->getAllDataFromTable("glpi_plugin_consumables_options");
 
             $groups = [];
@@ -315,7 +272,7 @@ class Option extends CommonDBTM
                     if (!empty($config["groups"])) {
                         $groups = json_decode($config["groups"], true);
                         if (count($groups) > 0) {
-                            if (($key = array_search($params["_groups_id"], $groups)) !== false) {
+                            if (($key = array_search($original_input["_groups_id"], $groups)) !== false) {
                                 unset($groups[$key]);
                             }
                         }
@@ -329,10 +286,10 @@ class Option extends CommonDBTM
                 $group = "";
             }
 
-            $input['id']     = $params['id'];
+            $input['id']     = $original_input['id'];
             $input['groups'] = $group;
         } else {
-            $input = $params;
+            // No changes needed, return input as-is
         }
         return $input;
     }
@@ -374,7 +331,7 @@ class Option extends CommonDBTM
      * @param MassiveAction $ma
      * @return bool|null
      */
-    public static function showMassiveActionsSubForm(MassiveAction $ma): ?bool
+    public static function showMassiveActionsSubForm(MassiveAction $ma)
     {
         switch ($ma->getAction()) {
             case "add_number":

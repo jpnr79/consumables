@@ -22,8 +22,9 @@ if (!class_exists('TilesManager')) {
 }
 
 use GlpiPlugin\Consumables\Field;
-use GlpiPlugin\Consumables\Helpdesk\Tile\ConsumablesPageTile;
+// use GlpiPlugin\Consumables\Helpdesk\Tile\ConsumablesPageTile;
 use GlpiPlugin\Consumables\Menu;
+use GlpiPlugin\Consumables\Option;
 use GlpiPlugin\Consumables\Profile;
 use GlpiPlugin\Consumables\Request;
 use GlpiPlugin\Consumables\Servicecatalog;
@@ -69,23 +70,25 @@ function plugin_init_consumables(): void
 
     global $PLUGIN_HOOKS, $CFG_GLPI;
 
-    $tiles_manager = TilesManager::getInstance();
-    $tiles_manager->registerPluginTileType(new ConsumablesPageTile());
+    // $tiles_manager = TilesManager::getInstance();
+    // $tiles_manager->registerPluginTileType(new ConsumablesPageTile());
 
     $CFG_GLPI['glpitablesitemtype'][Validation::class] = 'glpi_plugin_consumables_requests';
+    $CFG_GLPI['glpitablesitemtype'][Option::class] = 'glpi_plugin_consumables_options';
     $PLUGIN_HOOKS['csrf_compliant']['consumables'] = true;
     $PLUGIN_HOOKS['change_profile']['consumables'] = [Profile::class, 'initProfile'];
     // Avoid referencing Glpi\Plugin\Hooks constants during init; use literal hook names
     $PLUGIN_HOOKS['add_css']['consumables'] = 'public/css/consumables.css';
     $PLUGIN_HOOKS['add_javascript']['consumables'] = 'public/js/consumables.js';
 
+    Plugin::registerClass(Profile::class, ['addtabon' => 'Profile']);
+    Plugin::registerClass('GlpiPlugin\\Consumables\\Request', ['addtabon' => 'User', 'notificationtemplates_types' => true]);
+    Plugin::registerClass('GlpiPlugin\\Consumables\\Request', ['addtabon' => 'Group', 'notificationtemplates_types' => true]);
+    Plugin::registerClass('GlpiPlugin\\Consumables\\Request', ['addtabon' => 'ConsumableItem']);
+    Plugin::registerClass(Option::class, ['addtabon' => 'ConsumableItem']);
+
     if (Session::getLoginUserID()) {
         $PLUGIN_HOOKS['post_item_form']['consumables'] = [Field::class, 'addFieldOrderReference'];
-
-        Plugin::registerClass(Profile::class, ['addtabon' => 'Profile']);
-        Plugin::registerClass('GlpiPlugin\\Consumables\\Request', ['addtabon' => 'User', 'notificationtemplates_types' => true]);
-        Plugin::registerClass('GlpiPlugin\\Consumables\\Request', ['addtabon' => 'Group', 'notificationtemplates_types' => true]);
-        Plugin::registerClass('GlpiPlugin\\Consumables\\Request', ['addtabon' => 'ConsumableItem']);
 
         $PLUGIN_HOOKS['item_add']['consumables'] = ['ConsumableItem' => [Field::class, 'postAddConsumable']];
         $PLUGIN_HOOKS['pre_item_update']['consumables'] = ['ConsumableItem' => [Field::class, 'preUpdateConsumable']];

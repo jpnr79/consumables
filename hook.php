@@ -34,11 +34,12 @@ use GlpiPlugin\Consumables\Option;
 use GlpiPlugin\Consumables\Profile;
 use GlpiPlugin\Consumables\Request;
 
-
 /**
  * Instala o plugin Consumables
+ */
 function plugin_consumables_install(): bool
-
+{
+    global $DB;
     if (!$DB->tableExists("glpi_plugin_consumables_requests")) {
         // Install script
         $DB->runFile(PLUGIN_CONSUMABLES_DIR . "/install/sql/empty-2.0.1.sql");
@@ -171,7 +172,6 @@ function plugin_consumables_getDatabaseRelations(): array
     if (\Plugin::isPluginActive("consumables")) {
             return [
             "glpi_consumableitems" => [
-                "glpi_plugin_consumables_requests" => "consumableitems_id",
                 "glpi_plugin_consumables_options" => "consumableitems_id"
             ]
         ];

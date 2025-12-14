@@ -52,7 +52,7 @@ class Profile extends \Profile
      *
      * @var string
      */
-    protected static $rightname = 'plugin_consumables';
+    public static $rightname = 'plugin_consumables';
 
     public static function createTabEntry(...$args) { return $args[0] ?? ''; }
     /**
@@ -60,7 +60,7 @@ class Profile extends \Profile
      * @param int $withtemplate
      * @return string
      */
-    public function getTabNameForItem(CommonGLPI $item, int $withtemplate = 0): string
+    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0): string
     {
         if ($item->getType() === 'Profile') {
             return self::createTabEntry(Menu::getMenuName());
@@ -89,7 +89,7 @@ class Profile extends \Profile
      * @param int $withtemplate
      * @return bool
      */
-    public static function displayTabContentForItem(CommonGLPI $item, int $tabnum = 1, int $withtemplate = 0): bool
+    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
     {
         if ($item->getType() === 'Profile') {
             $ID = $item->getID();
@@ -179,13 +179,15 @@ class Profile extends \Profile
      */
     /**
      * Show profile form
-     * @param int $profiles_id
-     * @param bool $openform
-     * @param bool $closeform
+     * @param int $ID
+     * @param array $options
      * @return void
      */
-    public function showForm(int $profiles_id = 0, bool $openform = true, bool $closeform = true): void
+    public function showForm($ID, array $options = []): void
     {
+        $profiles_id = $ID;
+        $openform = $options['openform'] ?? true;
+        $closeform = $options['closeform'] ?? true;
         $profile = new \Profile();
         echo "<div class='firstbloc'>";
         $canedit = Session::haveRightsOr(self::$rightname, [CREATE, UPDATE, PURGE]);
