@@ -1,3 +1,15 @@
+/**
+ * Handle plugin database schema and data migrations
+ * REQUIRED for GLPI 11+
+ *
+ * @return array
+ */
+function plugin_version_consumables_modifications() {
+    return [
+        // Example: [ 'version' => '1.0.0', 'query' => 'CREATE TABLE ...' ]
+        // Add migration steps here as needed for future versions
+    ];
+}
 <?php
 declare(strict_types=1);
 // Fallback for Session during static analysis
