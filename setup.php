@@ -1,3 +1,5 @@
+<?php
+declare(strict_types=1);
 /**
  * Handle plugin database schema and data migrations
  * REQUIRED for GLPI 11+
@@ -10,8 +12,6 @@ function plugin_version_consumables_modifications() {
         // Add migration steps here as needed for future versions
     ];
 }
-<?php
-declare(strict_types=1);
 // Fallback for Session during static analysis
 if (!class_exists('Session')) {
     class Session {
