@@ -120,7 +120,7 @@ final class ConsumablesPageTile extends CommonDBTM implements TileInterface, Pro
     #[Override]
     public function getDatabaseId(): int
     {
-        return $this->fields['id'] ?? '';
+        return (($this->fields['id'] ?? ''));
     }
 
     #[Override]
