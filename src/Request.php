@@ -257,7 +257,7 @@ class Request extends CommonDBTM
             return false;
         }
 
-        $data = $this->find(['consumableitems_id' => $item->fields['id']], ["date_mod DESC"]);
+        $data = $this->find(['consumableitems_id' => $item->fields['id'] ?? ''], ["date_mod DESC"]);
 
         $this->listItemsForConsumable($data);
     }
@@ -368,14 +368,14 @@ class Request extends CommonDBTM
             'class'   => 'btn btn-primary',
             'onclick' => "consumables_searchConsumables('searchConsumables','consumables_formSearchConsumables', 'consumables_searchConsumables','$type')",
         ]);
-        echo Html::hidden('requesters_id', ['value' => $item->fields['id']]);
+        echo Html::hidden('requesters_id', ['value' => $item->fields['id'] ?? '']);
         echo "</td>";
         echo "</tr>";
         echo "</table></div>";
         Html::closeForm();
 
         echo "<div class='center' id='consumables_searchConsumables'>";
-        $result = $this->listItemsForUserOrGroup($item->fields['id'], $type, ['begin_date' => $begin_date,
+        $result = $this->listItemsForUserOrGroup($item->fields['id'] ?? '', $type, ['begin_date' => $begin_date,
             'end_date'   => $end_date]);
         echo $result['message'];
         echo "</div>";
@@ -774,13 +774,13 @@ class Request extends CommonDBTM
             //         $picture_url = Toolbox::getPictureUrl();
             //         Toolbox::logInfo($picture_url);
             if (isset($consumable->fields['pictures'])) {
-                $pictures = json_decode($consumable->fields['pictures'], true);
+                $pictures = json_decode($consumable->fields['pictures'] ?? '', true);
                 if (isset($pictures) && is_array($pictures)) {
                     foreach ($pictures as $picture) {
                         $picture_url = Toolbox::getPictureUrl($picture);
                         echo "<img class='user_picture' alt=\"" . _sn('Picture', 'Pictures', 1) . "\" src='"
                              . $picture_url . "'>";
-                        echo "</br>" . $consumable->fields['comment'];
+                        echo "</br>" . $consumable->fields['comment'] ?? '';
                     }
                 }
             }

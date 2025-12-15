@@ -57,11 +57,11 @@ class Option extends CommonDBTM
             return false;
         }
         $data = [];
-        if ($this->getFromDBByCrit(["consumableitems_id" => $item->fields['id']])) {
+        if ($this->getFromDBByCrit(["consumableitems_id" => $item->fields['id'] ?? ''])) {
             $data = $this->fields;
         }
         if (count($data) < 1) {
-            $data = $this->initConfig($item->fields['id']);
+            $data = $this->initConfig($item->fields['id'] ?? '');
         }
         $this->listOptionsForConsumable($data, $item);
         return null;
@@ -303,7 +303,7 @@ class Option extends CommonDBTM
      */
     public function getMaxCart()
     {
-        return $this->fields['max_cart'];
+        return $this->fields['max_cart'] ?? '';
     }
 
    /**
@@ -315,8 +315,8 @@ class Option extends CommonDBTM
      */
     public function getAllowedGroups(): array
     {
-        if (!empty($this->fields['groups'])) {
-            return json_decode($this->fields['groups'], true);
+        if (!empty($this->fields['groups'] ?? '')) {
+            return json_decode($this->fields['groups'] ?? '', true);
         }
         return [];
     }

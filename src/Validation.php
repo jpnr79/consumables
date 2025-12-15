@@ -473,7 +473,7 @@ class Validation extends CommonDBTM
                             // Get available consumables
                             $outConsumable = [];
                             $availables = $consumable->find([
-                                'consumableitems_id' => $item->fields['consumableitems_id'],
+                                'consumableitems_id' => $item->fields['consumableitems_id'] ?? '',
                                 'date_out' => null,
                             ]);
                             foreach ($availables as $available) {
@@ -481,7 +481,7 @@ class Validation extends CommonDBTM
                             }
 
                             // Check if enough stock
-                            if (!empty($outConsumable) && count($outConsumable) >= $item->fields['number']) {
+                            if (!empty($outConsumable) && count($outConsumable) >= $item->fields['number'] ?? '') {
                                 // Give consumable
                                 $state = $validation->validationConsumable(
                                     $item->fields,
@@ -492,11 +492,11 @@ class Validation extends CommonDBTM
                                 $added['id'] = $item->getID();
                                 if ($item->update($added)) {
                                     $result = [1];
-                                    for ($i = 0; $i < $item->fields['number']; $i++) {
+                                    for ($i = 0; $i < $item->fields['number'] ?? ''; $i++) {
                                         if (isset($outConsumable[$i]) && $consumable->out(
                                             $outConsumable[$i]['id'],
-                                            $item->fields['give_itemtype'],
-                                            $item->fields['give_items_id']
+                                            $item->fields['give_itemtype'] ?? '',
+                                            $item->fields['give_items_id'] ?? ''
                                         )
                                         ) {
                                             $result[] = 1;
@@ -515,7 +515,7 @@ class Validation extends CommonDBTM
                                         __('Not enough stock for consumable %s', 'consumables'),
                                         Dropdown::getDropdownName(
                                             "glpi_consumableitems",
-                                            $item->fields['consumableitems_id']
+                                            $item->fields['consumableitems_id'] ?? ''
                                         )
                                     )
                                 );

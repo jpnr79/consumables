@@ -167,7 +167,7 @@ class Field extends CommonDBTM
             echo "</label>";
             echo "<div class='col-xxl-7  field-container'>";
             // Fallback: simple input for order_ref if Html::input is not available
-            echo "<input type='text' name='order_ref' value='" . htmlspecialchars($field->fields['order_ref']) . "' size='40'>";
+            echo "<input type='text' name='order_ref' value='" . htmlspecialchars($field->fields['order_ref'] ?? '') . "' size='40'>";
             echo "</div>";
             echo "</div>";
         }
@@ -189,7 +189,7 @@ class Field extends CommonDBTM
         $field = new self();
         if (isset($consumableItem->input['order_ref'])) {
             $field->add([
-                'consumableitems_id' => $consumableItem->fields['id'],
+                'consumableitems_id' => $consumableItem->fields['id'] ?? '',
                 'order_ref' => $consumableItem->input['order_ref']
             ]);
         }
@@ -211,7 +211,7 @@ class Field extends CommonDBTM
         $field->getFromDBByCrit(['consumableitems_id' => $consumableItem->input['id']]);
         if (!empty($field->fields)) {
             $field->update([
-                'id' => $field->fields['id'],
+                'id' => $field->fields['id'] ?? '',
                 'order_ref' => $consumableItem->input['order_ref']
             ]);
         } else {
