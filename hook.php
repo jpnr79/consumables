@@ -43,21 +43,60 @@ use GlpiPlugin\Consumables\Request;
 function plugin_consumables_install(): bool
 {
     global $DB;
-    if (!$DB->tableExists("glpi_plugin_consumables_requests")) {
-        // Install script
-        $DB->runFile(PLUGIN_CONSUMABLES_DIR . "/install/sql/empty-2.0.1.sql");
-        include(PLUGIN_CONSUMABLES_DIR . "/install/install.php");
-        install_notifications_consumables();
-    } elseif (!$DB->tableExists("glpi_plugin_consumables_options")) {
-        $DB->runFile(PLUGIN_CONSUMABLES_DIR . "/install/sql/update-1.2.2.sql");
-    } elseif (!$DB->fieldExists("glpi_plugin_consumables_options", "consumableitems_id")) {
-        $DB->runFile(PLUGIN_CONSUMABLES_DIR . "/install/sql/update-2.0.1.sql");
+    try {
+        if (!$DB->tableExists("glpi_plugin_consumables_requests")) {
+            // Install script
+            $DB->runFile(PLUGIN_CONSUMABLES_DIR . "/install/sql/empty-2.0.1.sql");
+            include(PLUGIN_CONSUMABLES_DIR . "/install/install.php");
+            install_notifications_consumables();
+        } elseif (!$DB->tableExists("glpi_plugin_consumables_options")) {
+            $DB->runFile(PLUGIN_CONSUMABLES_DIR . "/install/sql/update-1.2.2.sql");
+        } elseif (!$DB->fieldExists("glpi_plugin_consumables_options", "consumableitems_id")) {
+            $DB->runFile(PLUGIN_CONSUMABLES_DIR . "/install/sql/update-2.0.1.sql");
+        }
+
+        Profile::initProfile();
+        $profile_id = null;
+        $session_status = function_exists('session_status') ? session_status() : PHP_SESSION_DISABLED;
+        if ($session_status === PHP_SESSION_ACTIVE && isset($_SESSION) && is_array($_SESSION)) {
+            if (array_key_exists('glpiactiveprofile', $_SESSION) && is_array($_SESSION['glpiactiveprofile']) && array_key_exists('id', $_SESSION['glpiactiveprofile']) && !empty($_SESSION['glpiactiveprofile']['id'])) {
+                $profile_id = $_SESSION['glpiactiveprofile']['id'];
+            }
+        }
+        if ($profile_id !== null) {
+            Profile::createFirstAccess($profile_id);
+        } else if ($session_status === PHP_SESSION_ACTIVE && isset($_SESSION) && is_array($_SESSION) && array_key_exists('glpiname', $_SESSION)) {
+            if (class_exists('Toolbox')) {
+                Toolbox::logInFile('consumables', sprintf(
+                    'WARNING [%s:%s] glpiactiveprofile not set or invalid during install, user=%s, session_keys=%s',
+                    __FILE__, __FUNCTION__, $_SESSION['glpiname'], implode(',', array_keys($_SESSION))
+                ));
+            }
+        } else {
+            if (class_exists('Toolbox')) {
+                Toolbox::logInFile('consumables', sprintf(
+                    'WARNING [%s:%s] Session not active or missing, session_status=%s',
+                    __FILE__, __FUNCTION__, (string)$session_status
+                ));
+            }
+        }
+        if (class_exists('Toolbox')) {
+            Toolbox::logInFile('consumables', sprintf(
+                'INFO [%s:%s] Plugin installed successfully by user=%s',
+                __FILE__, __FUNCTION__, $_SESSION['glpiname'] ?? 'unknown'
+            ));
+        }
+        return true;
+    } catch (\Exception $e) {
+        if (class_exists('Toolbox')) {
+            Toolbox::logInFile('consumables', sprintf(
+                'ERROR [%s:%s] Install error: %s, user=%s',
+                __FILE__, __FUNCTION__, $e->getMessage(), $_SESSION['glpiname'] ?? 'unknown'
+            ));
+        }
+        error_log("Consumables install error: " . $e->getMessage());
+        return false;
     }
-
-    Profile::initProfile();
-    Profile::createFirstAccess($_SESSION['glpiactiveprofile']['id']);
-
-    return true;
 }
 
 
@@ -69,80 +108,96 @@ function plugin_consumables_install(): bool
 function plugin_consumables_uninstall(): bool
 {
     global $DB;
-
-    $tables = [
-        "glpi_plugin_consumables_profiles",
-        "glpi_plugin_consumables_requests",
-        "glpi_plugin_consumables_options",
-        "glpi_plugin_consumables_fields"
-    ];
-
-    foreach ($tables as $table) {
-        $DB->dropTable($table, true);
-    }
-
-    $notif   = new Notification();
-    $options = ['itemtype' => Request::class];
-    foreach ($DB->request([
-        'FROM' => 'glpi_notifications',
-        'WHERE' => $options]) as $data) {
-        $notif->delete($data);
-    }
-
-    //templates
-    $template       = new NotificationTemplate();
-    $translation    = new NotificationTemplateTranslation();
-    $notif_template = new Notification_NotificationTemplate();
-    $options        = ['itemtype' => Request::class];
-    foreach ($DB->request([
-        'FROM' => 'glpi_notificationtemplates',
-        'WHERE' => $options]) as $data) {
-        $options_template = [
-            'notificationtemplates_id' => $data['id']
+    try {
+        $tables = [
+            "glpi_plugin_consumables_profiles",
+            "glpi_plugin_consumables_requests",
+            "glpi_plugin_consumables_options",
+            "glpi_plugin_consumables_fields"
         ];
 
-        foreach ($DB->request([
-            'FROM' => 'glpi_notificationtemplatetranslations',
-            'WHERE' => $options_template]) as $data_template) {
-            $translation->delete($data_template);
+        foreach ($tables as $table) {
+            $DB->dropTable($table, true);
         }
-        $template->delete($data);
 
+        $notif   = new Notification();
+        $options = ['itemtype' => Request::class];
         foreach ($DB->request([
-            'FROM' => 'glpi_notifications_notificationtemplates',
-            'WHERE' => $options_template]) as $data_template) {
-            $notif_template->delete($data_template);
+            'FROM' => 'glpi_notifications',
+            'WHERE' => $options]) as $data) {
+            $notif->delete($data);
         }
+
+        //templates
+        $template       = new NotificationTemplate();
+        $translation    = new NotificationTemplateTranslation();
+        $notif_template = new Notification_NotificationTemplate();
+        $options        = ['itemtype' => Request::class];
+        foreach ($DB->request([
+            'FROM' => 'glpi_notificationtemplates',
+            'WHERE' => $options]) as $data) {
+            $options_template = [
+                'notificationtemplates_id' => $data['id']
+            ];
+
+            foreach ($DB->request([
+                'FROM' => 'glpi_notificationtemplatetranslations',
+                'WHERE' => $options_template]) as $data_template) {
+                $translation->delete($data_template);
+            }
+            $template->delete($data);
+
+            foreach ($DB->request([
+                'FROM' => 'glpi_notifications_notificationtemplates',
+                'WHERE' => $options_template]) as $data_template) {
+                $notif_template->delete($data_template);
+            }
+        }
+
+        $itemtypes = [
+            'Alert',
+            'DisplayPreference',
+            'Document_Item',
+            'ImpactItem',
+            'Item_Ticket',
+            'Link_Itemtype',
+            'Notepad',
+            'SavedSearch',
+            'DropdownTranslation',
+            'NotificationTemplate',
+            'Notification'
+        ];
+        foreach ($itemtypes as $itemtype) {
+            $item = new $itemtype;
+            $item->deleteByCriteria(['itemtype' => Request::class]);
+        }
+
+        // Delete rights associated with the plugin
+        $profileRight = new ProfileRight();
+        foreach (Profile::getAllRights() as $right) {
+            $profileRight->deleteByCriteria(['name' => $right['field']]);
+        }
+
+        Menu::removeRightsFromSession();
+        Profile::removeRightsFromSession();
+
+        if (class_exists('Toolbox')) {
+            Toolbox::logInFile('consumables', sprintf(
+                'INFO [%s:%s] Plugin uninstalled successfully by user=%s',
+                __FILE__, __FUNCTION__, $_SESSION['glpiname'] ?? 'unknown'
+            ));
+        }
+        return true;
+    } catch (\Exception $e) {
+        if (class_exists('Toolbox')) {
+            Toolbox::logInFile('consumables', sprintf(
+                'ERROR [%s:%s] Uninstall error: %s, user=%s',
+                __FILE__, __FUNCTION__, $e->getMessage(), $_SESSION['glpiname'] ?? 'unknown'
+            ));
+        }
+        error_log("Consumables uninstall error: " . $e->getMessage());
+        return false;
     }
-
-    $itemtypes = [
-        'Alert',
-        'DisplayPreference',
-        'Document_Item',
-        'ImpactItem',
-        'Item_Ticket',
-        'Link_Itemtype',
-        'Notepad',
-        'SavedSearch',
-        'DropdownTranslation',
-        'NotificationTemplate',
-        'Notification'
-    ];
-    foreach ($itemtypes as $itemtype) {
-        $item = new $itemtype;
-        $item->deleteByCriteria(['itemtype' => Request::class]);
-    }
-
-    // Delete rights associated with the plugin
-    $profileRight = new ProfileRight();
-    foreach (Profile::getAllRights() as $right) {
-        $profileRight->deleteByCriteria(['name' => $right['field']]);
-    }
-
-    Menu::removeRightsFromSession();
-    Profile::removeRightsFromSession();
-
-    return true;
 }
 
 // Hook done on purge item case
